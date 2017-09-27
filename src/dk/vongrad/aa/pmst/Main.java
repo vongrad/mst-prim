@@ -16,10 +16,12 @@ public class Main {
 
         InputType type = args.length == 2 ? InputType.COMPLETE : args.length == 3 ? InputType.SQUARE : InputType.FILE;
 
-        int d = 10;
+        int d = 20;
+
+        int start = 0;
 
         if (type == InputType.FILE) {
-            d = 20;
+            d = 30;
         }
 
         int seed = Integer.parseInt(args[0]);
@@ -41,12 +43,14 @@ public class Main {
         if (type == InputType.FILE) {
 	        String filename = args[1];
             edges = parseEdges(filename, sizeX);
+
+            start = edges.keySet().iterator().next();
         }
 
         frontier = new MinHeap(d);
         vertices = generateSeeds(seed, sizeX, sizeY);
 
-        System.out.println(buildMST(type, 0, sizeX, sizeY));
+        System.out.println(buildMST(type, start, sizeX, sizeY));
     }
 
     public static Map<Integer, List<Integer>> parseEdges(String filename, int size) throws IOException {
@@ -65,8 +69,10 @@ public class Main {
                 int v2 = Integer.parseInt(split[1]);
 
                 edges.putIfAbsent(v1, new ArrayList<>());
+                edges.putIfAbsent(v2, new ArrayList<>());
 
                 edges.get(v1).add(v2);
+                edges.get(v2).add(v1);
             }
 
 
@@ -87,6 +93,8 @@ public class Main {
         while (!frontier.isEmpty()) {
 
             Node current = frontier.poll();
+
+            if (current.getSource() == current.getDestination()) continue;
 
             vertices[current.getDestination()].setVisited(true);
 
