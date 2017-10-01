@@ -8,7 +8,7 @@ public class Main {
 
     static Vertex[] vertices;
     static MinHeap frontier;
-    static Map<Integer, List<Integer>> edges;
+    static Map<Integer, Set<Integer>> edges;
 
     static int EDGE_MOD = 100000;
 
@@ -21,7 +21,7 @@ public class Main {
         int start = 0;
 
         if (type == InputType.FILE) {
-            d = 30;
+            d = 6;
         }
 
         int seed = Integer.parseInt(args[0]);
@@ -38,7 +38,11 @@ public class Main {
 
 	    if (type == InputType.SQUARE) {
 	        sizeY = Integer.parseInt(args[2]);
+	        start = (sizeX * sizeY) / 2;
         }
+
+        frontier = new MinHeap(d);
+        vertices = generateSeeds(seed, sizeX, sizeY);
 
         if (type == InputType.FILE) {
 	        String filename = args[1];
@@ -47,15 +51,12 @@ public class Main {
             start = edges.keySet().iterator().next();
         }
 
-        frontier = new MinHeap(d);
-        vertices = generateSeeds(seed, sizeX, sizeY);
-
         System.out.println(buildMST(type, start, sizeX, sizeY));
     }
 
-    public static Map<Integer, List<Integer>> parseEdges(String filename, int size) throws IOException {
+    public static Map<Integer, Set<Integer>> parseEdges(String filename, int size) throws IOException {
 
-        Map<Integer, List<Integer>> edges = new HashMap<>(size);
+        Map<Integer, Set<Integer>> edges = new HashMap<>(size);
 
             BufferedReader bi = new BufferedReader(new FileReader(filename));
             String line;
@@ -68,11 +69,12 @@ public class Main {
                 int v1 = Integer.parseInt(split[0]);
                 int v2 = Integer.parseInt(split[1]);
 
-                edges.putIfAbsent(v1, new ArrayList<>());
-                edges.putIfAbsent(v2, new ArrayList<>());
+                edges.putIfAbsent(v1, new HashSet<>(100));
+                edges.putIfAbsent(v2, new HashSet<>(100));
 
                 edges.get(v1).add(v2);
                 edges.get(v2).add(v1);
+
             }
 
 
@@ -90,10 +92,12 @@ public class Main {
 
         addNeighbours(type, new Node(start, start, Integer.MAX_VALUE), sizeX, sizeY);
 
+
         while (!frontier.isEmpty()) {
 
             Node current = frontier.poll();
 
+            // TODO: check this!
             if (current.getSource() == current.getDestination()) continue;
 
             vertices[current.getDestination()].setVisited(true);
